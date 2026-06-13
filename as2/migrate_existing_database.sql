@@ -1,0 +1,43 @@
+USE jobs;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'staff'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS clients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    companyName VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS enquiries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    firstName VARCHAR(255) NOT NULL,
+    surname VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    telephone VARCHAR(50) NOT NULL,
+    enquiry TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    staffId INT NULL,
+    dateSubmitted DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) NOT NULL DEFAULT 'staff';
+ALTER TABLE job ADD COLUMN IF NOT EXISTS dateAdded TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE job ADD COLUMN IF NOT EXISTS archived TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE job ADD COLUMN IF NOT EXISTS clientId INT NULL;
+ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS dateSubmitted DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+INSERT INTO users (username, password, role)
+SELECT 'admin', '$2y$12$NWzo6Yv3TcDPfl3niq2URua5fqXkmkb3FQ37VNWKOo8pqDPvejZzu', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
+
+INSERT INTO clients (companyName, username, password)
+SELECT 'Northampton General Hospital', 'hospitalclient', '$2y$12$NWzo6Yv3TcDPfl3niq2URua5fqXkmkb3FQ37VNWKOo8pqDPvejZzu'
+WHERE NOT EXISTS (SELECT 1 FROM clients WHERE username = 'hospitalclient');
+
+UPDATE job SET clientId = (SELECT id FROM clients WHERE username = 'hospitalclient' LIMIT 1) WHERE clientId IS NULL LIMIT 2;

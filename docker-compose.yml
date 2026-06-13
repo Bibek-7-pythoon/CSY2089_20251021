@@ -1,0 +1,34 @@
+services:
+
+  php:
+    build: .
+    volumes:
+      - ./as2/jobs/public:/as2/jobs/public
+    working_dir: /as2/jobs/public
+    command: php -S 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jobs
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./as2/import.sql:/docker-entrypoint-initdb.d/01_import.sql:ro
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysqldata:
